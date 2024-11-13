@@ -36,9 +36,7 @@
 namespace g2o {
 using namespace std;
 
-EdgeSE3::EdgeSE3() : BaseBinaryEdge<6, Isometry3, VertexSE3, VertexSE3>() {
-  information().setIdentity();
-}
+EdgeSE3::EdgeSE3() : BaseBinaryEdge<6, Isometry3, VertexSE3, VertexSE3>() {}
 
 bool EdgeSE3::read(std::istream& is) {
   Vector7 meas;
