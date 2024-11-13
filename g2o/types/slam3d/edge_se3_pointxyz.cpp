@@ -101,7 +101,7 @@ void EdgeSE3PointXYZ::linearizeOplus() {
   J.block<3, 3>(0, 6) = cache->w2l().rotation();
 
   Eigen::Matrix<double, 3, 9, Eigen::ColMajor> Jhom =
-      Eigen::Isometry3d,rotation() * J;
+      Eigen::Isometry3d::Identity(),rotation() * J;
 
   _jacobianOplusXi = Jhom.block<3, 6>(0, 0);
   _jacobianOplusXj = Jhom.block<3, 3>(0, 6);
