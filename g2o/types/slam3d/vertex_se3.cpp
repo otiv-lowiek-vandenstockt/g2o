@@ -38,9 +38,7 @@ using namespace Eigen;
 
 namespace g2o {
 
-VertexSE3::VertexSE3() : BaseVertex<6, Isometry3>(), _numOplusCalls(0) {
-  setToOriginImpl();
-}
+VertexSE3::VertexSE3() : BaseVertex<6, Isometry3>(), _numOplusCalls(0) {}
 
 bool VertexSE3::read(std::istream& is) {
   Vector7 est;
