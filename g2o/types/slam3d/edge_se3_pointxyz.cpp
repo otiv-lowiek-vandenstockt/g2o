@@ -49,6 +49,17 @@ EdgeSE3PointXYZ::EdgeSE3PointXYZ()
   J.fill(0);
   J.block<3, 3>(0, 0) = -Matrix3::Identity();
   cache = 0;
+  offsetParam = 0;
+  resizeParameters(1);
+  installParameter(offsetParam, 0);
+}
+
+bool EdgeSE3PointXYZ::resolveCaches() {
+  ParameterVector pv(1);
+  pv[0] = offsetParam;
+  resolveCache(cache, (OptimizableGraph::Vertex*)_vertices[0],
+               "CACHE_SE3_OFFSET", pv);
+  return cache != 0;
 }
 
 bool EdgeSE3PointXYZ::read(std::istream& is) {
@@ -101,7 +112,7 @@ void EdgeSE3PointXYZ::linearizeOplus() {
   J.block<3, 3>(0, 6) = cache->w2l().rotation();
 
   Eigen::Matrix<double, 3, 9, Eigen::ColMajor> Jhom =
-      Eigen::Isometry3d::Identity(),rotation() * J;
+      offsetParam->inverseOffset().rotation() * J;
 
   _jacobianOplusXi = Jhom.block<3, 6>(0, 0);
   _jacobianOplusXj = Jhom.block<3, 3>(0, 6);
@@ -129,7 +140,7 @@ void EdgeSE3PointXYZ::initialEstimate(const OptimizableGraph::VertexSet& from,
   VertexSE3* cam = dynamic_cast<VertexSE3*>(_vertices[0]);
   VertexPointXYZ* point = dynamic_cast<VertexPointXYZ*>(_vertices[1]);
   Vector3 p = _measurement;
-  point->setEstimate(cam->estimate() * p);
+  point->setEstimate(cam->estimate() * (offsetParam->offset() * p));
 }
 
 #ifdef G2O_HAVE_OPENGL
@@ -149,7 +160,8 @@ HyperGraphElementAction* EdgeSE3PointXYZDrawAction::operator()(
   VertexSE3* fromEdge = static_cast<VertexSE3*>(e->vertex(0));
   VertexPointXYZ* toEdge = static_cast<VertexPointXYZ*>(e->vertex(1));
   if (!fromEdge || !toEdge) return this;
-  Isometry3 fromTransform = fromEdge->estimate();
+  Isometry3 fromTransform =
+      fromEdge->estimate() * e->offsetParameter()->offset();
   glColor3f(LANDMARK_EDGE_COLOR);
   glPushAttrib(GL_ENABLE_BIT);
   glDisable(GL_LIGHTING);
